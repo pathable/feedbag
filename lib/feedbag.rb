@@ -33,6 +33,7 @@ module Feedbag
 	]
 
 	$feeds = []
+	$favicons = []
 	$titles = []
 	$base_uri = nil
 
@@ -114,6 +115,10 @@ module Feedbag
 					if l["type"] and @content_types.include?(l["type"].downcase.strip) and (l["rel"].downcase =~ /alternate/i or l["rel"] == "service.feed")
 						self.add_feed(l["href"], url, $base_uri)
 					end
+					
+					if l["rel"].downcase.strip.include?('icon')
+					  self.add_favicon(l["href"], url, $base_uri)
+				  end
 				end
 
 				(doc/"a").each do |a|
@@ -140,7 +145,7 @@ module Feedbag
 		rescue => ex
 			$stderr.puts "#{ex.class} error ocurred with: `#{url}': #{ex.message}"
 		ensure
-			return {:titles => $titles, :feeds => $feeds}
+			return {:titles => $titles, :feeds => $feeds, :favicons => $favicons}
 		end
 		
 	end
@@ -155,6 +160,27 @@ module Feedbag
 
   def self.add_title(title)
     $titles.push(title) unless title.blank?
+  end
+  
+  def self.add_favicon(favicon_url, orig_url, base_uri = nil)
+    url = favicon_url.strip
+    
+		if base_uri
+			url = URI.parse(base_uri).merge(favicon_url).to_s
+		end
+
+		begin
+			uri = URI.parse(url)
+		rescue
+			puts "Error with `#{url}'"
+			exit 1
+		end
+		unless uri.absolute?
+			orig = URI.parse(orig_url)
+			url = orig.merge(url).to_s
+		end
+
+		$favicons.push(url) unless $favicons.include?(url)
   end
 
 	def self.add_feed(feed_url, orig_url, base_uri = nil)

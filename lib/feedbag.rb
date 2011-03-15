@@ -102,7 +102,10 @@ module Feedbag
 				end
 
         (doc/"head/title").each do |t|
-          self.add_title(t)
+          title = t.inner_html
+          next if title.blank?
+          title.strip!
+          self.add_title(title)
         end
         
 				# first with links

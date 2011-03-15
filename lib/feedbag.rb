@@ -33,6 +33,7 @@ module Feedbag
 	]
 
 	$feeds = []
+	$titles = []
 	$base_uri = nil
 
 	def self.feed?(url)
@@ -100,6 +101,10 @@ module Feedbag
 					$base_uri = nil
 				end
 
+        (doc/"head/title").each do |t|
+          self.add_title(t)
+        end
+        
 				# first with links
 				(doc/"link").each do |l|
 					next unless l["rel"]
@@ -132,7 +137,7 @@ module Feedbag
 		rescue => ex
 			$stderr.puts "#{ex.class} error ocurred with: `#{url}': #{ex.message}"
 		ensure
-			return $feeds
+			return {:titles => $titles, :feeds => $feeds}
 		end
 		
 	end
@@ -144,6 +149,10 @@ module Feedbag
 			false
 		end
 	end
+
+  def self.add_title(title)
+    $titles.push(title) unless title.blank?
+  end
 
 	def self.add_feed(feed_url, orig_url, base_uri = nil)
 		# puts "#{feed_url} - #{orig_url}"
